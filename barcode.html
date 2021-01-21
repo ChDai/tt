@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+
+<style>
+    .button {
+        background-color: #4CAF50;
+        /* Green */
+        border: none;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 35px;
+        margin: 4px 2px;
+        cursor: pointer;
+    }
+
+    .addButton {
+        width: 100%;
+        height: 80px;
+    }
+
+    .deleteButton {
+        width: 10%;
+        height: 60px;
+        background-color: red;
+        border-radius: 60%;
+    }
+
+    h1 {
+        color: green;
+    }
+</style>
+
+<head>
+    <meta charset="utf-8">
+    <title>Barcode</title>
+    <script src="https://cdn.jsdelivr.net/jsbarcode/3.3.7/JsBarcode.all.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-borderless/borderless.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9/dist/sweetalert2.min.js"></script>
+    <script>
+        setTimeout('loadBarCodeDatas()', 1000);
+        var datas = JSON.parse(window.localStorage.stuff);
+
+        function loadBarCodeDatas() {
+            document.body.innerHTML = "<button class=\"button addButton\" onclick=\"addBarcode()\">: : 新增 : :</button><br>";
+            document.body.className = "";
+            for (var i = 0; i < datas.length; i++) {
+                appendBarcodeImage(i, datas[i]["code"], datas[i]["name"]);
+            }
+        }
+
+        function appendBarcodeImage(index, barcodeVal, name) {
+            var div = document.createElement('div');
+            div.style = "text-align:center";
+            div.innerHTML = "<button id=" + index + " class=\"button deleteButton\" onclick=\"deleteBarcode(this.id)\">X</button><br>" + "<svg id=B" + index + "></svg><h1>" + name + "</h1><br></br><br></br>";
+            document.body.appendChild(div);
+            JsBarcode("#B" + index, barcodeVal, {
+                width: 5,
+                height: 200,
+                fontSize: 35,
+                displayValue: true
+            });
+        }
+
+        function addBarcode() {
+            (async () => {
+                const { value: formValues } = await Swal.fire({
+                    title: '輸入條碼與備註',
+                    html:
+                        '<input id="swal-input1" class="swal2-input">' +
+                        '<input id="swal-input2" class="swal2-input">',
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        return [
+                            document.getElementById('swal-input1').value,
+                            document.getElementById('swal-input2').value
+                        ]
+                    }
+                })
+
+                if (formValues.length != 2) {
+                    Swal.fire("ERROR!");
+                    return;
+                }
+
+                if (formValues[0].length <= 0 || formValues[1].length <= 0) {
+                    Swal.fire("請輸入內容");
+                    return;
+                }
+
+                var data = {
+                    "code": formValues[0],
+                    "name": formValues[1]
+                }
+
+                datas.push(data);
+                window.localStorage.stuff = JSON.stringify(datas);
+                loadBarCodeDatas();
+            })()
+
+        }
+
+        function deleteBarcode(index) {
+            datas = removeItemOnce(datas, index);
+            window.localStorage.stuff = JSON.stringify(datas);
+            loadBarCodeDatas();
+        }
+
+        function removeItemOnce(arr, index) {
+            if (index > -1) {
+                arr.splice(index, 1);
+            }
+            return arr;
+        }
+
+    </script>
+</head>
+
+<body>
+    
+</body>
+
+</html>
